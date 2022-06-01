@@ -1,5 +1,13 @@
 from wagtail.core import blocks
-from wagtail.core.blocks import StructBlock
+
+
+block_classes = [
+    "FieldBlock", "CharBlock", "URLBlock", "RichTextBlock", "RawHTMLBlock", "ChooserBlock",
+    "PageChooserBlock", "TextBlock", "BooleanBlock", "DateBlock", "TimeBlock",
+    "DateTimeBlock", "ChoiceBlock", "MultipleChoiceBlock", "EmailBlock", "IntegerBlock",
+    "FloatBlock", "DecimalBlock", "RegexBlock", "BlockQuoteBlock",
+    "ImageChooserBlock", "DocumentChooserBlock", "PageChooserBlock",
+]
 
 
 class Analyzer:
@@ -8,18 +16,39 @@ class Analyzer:
         self.block_representation = {}
 
     def to_representation(self):
-        for bblock in self.block.base_blocks:
-            block_class = self.block.base_blocks.get(bblock)
-            if self.is_simple(block_class):
-                self.block_representation[bblock] = "<insert-value>"
+        for name, block in self._get_iter_blocks().items():
+            if block.__class__.__name__ == 'ListBlock':
+                self.block_representation[name] = self.list_block_render(block)
+            if block.__class__.__name__ == 'StreamBlock':
+                self.block_representation[name] = [self.stream_block_render(block)]
+            elif block.__class__.__name__ not in block_classes:
+                self.block_representation[name] = self.block_render(block)
             else:
-                analyzer = Analyzer(block_class)
-                import pdb;
-                pdb.set_trace()
-                analyzer.to_representation()
-                self.block_representation[bblock] = analyzer.block_representation
+                self.block_representation[name] = "<insert-value>"
 
-    def is_simple(self, block):
-        complex_blocks = ['ListBlock', 'StreamBlock']
-        if block.__class__.__name__ not in complex_blocks:
-            return True
+    def _get_iter_blocks(self):
+        if hasattr(self.block, 'child_blocks'):
+            return self.block.child_blocks
+        if hasattr(self.block, 'base_blocks'):
+            return self.block.base_blocks
+
+    def list_block_render(self, block):
+        analyzer = Analyzer(block.child_block)
+        analyzer.to_representation()
+        return analyzer.block_representation
+
+    def stream_block_render(self, block):
+        stream_parent = {}
+        items = {}
+        for k, v in block.child_blocks.items():
+            analyzer = Analyzer(v)
+            analyzer.to_representation()
+            items[k] = analyzer.block_representation
+            stream_parent["type"] = k
+            stream_parent["value"] = items
+        return stream_parent
+
+    def block_render(self, block):
+        analyzer = Analyzer(block)
+        analyzer.to_representation()
+        return analyzer.block_representation
