@@ -5,7 +5,8 @@ description = "Preen is a library to help with the testing of wagtail pages and 
 authors = ["Jeremy Gibson <jgibson@caktusgroup.com>", "Lorien Olive <lolive@caktusgroup.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.6.*, < 4.*"
+python = ">=3.7.*, < 4.*"
+wagtail = "^2.15"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.0"
