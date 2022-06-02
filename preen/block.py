@@ -1,6 +1,3 @@
-from wagtail.core import blocks
-
-
 block_classes = [
     "FieldBlock", "CharBlock", "URLBlock", "RichTextBlock", "RawHTMLBlock", "ChooserBlock",
     "PageChooserBlock", "TextBlock", "BooleanBlock", "DateBlock", "TimeBlock",
@@ -11,12 +8,13 @@ block_classes = [
 
 
 class Analyzer:
-    def __init__(self, block) -> None:
+    def __init__(self, block, no_object=False) -> None:
         self.block = block
         self.block_representation = {}
         self.list_blocks = {}
         self.stream_blocks = {}
         self.other_complex = {}
+        self.no_object = no_object
 
     def to_representation(self):
         for name, block in self._get_iter_blocks().items():
@@ -33,7 +31,9 @@ class Analyzer:
                 self.block_representation[name] = self.block_render(block)
                 self.other_complex[name] = block
             else:
-                self.block_representation[name] = "<insert-value>"
+                self.block_representation[name] = block
+                if self.no_object:
+                    self.block_representation[name] = block.__class__.__name__
 
     def _get_iter_blocks(self):
         if hasattr(self.block, 'child_blocks'):
@@ -42,19 +42,19 @@ class Analyzer:
             return self.block.base_blocks
 
     def list_block_render(self, block):
-        analyzer = Analyzer(block.child_block)
+        analyzer = Analyzer(block.child_block, no_object=self.no_object)
         analyzer.to_representation()
         return analyzer.block_representation
 
     def stream_block_render(self, block_name, block):
         stream_parent = {}
-        analyzer = Analyzer(block)
+        analyzer = Analyzer(block, no_object=self.no_object)
         analyzer.to_representation()
         stream_parent["type"] = block_name
         stream_parent["value"] = analyzer.block_representation
         return stream_parent
 
     def block_render(self, block):
-        analyzer = Analyzer(block)
+        analyzer = Analyzer(block, no_object=self.no_object)
         analyzer.to_representation()
         return analyzer.block_representation
