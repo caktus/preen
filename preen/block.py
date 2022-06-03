@@ -1,4 +1,4 @@
-from .fake_blocks import FAKE_BLOCK_MAP
+from .fake_blocks import FakeBlockProvider
 
 simple_block_types = [
     "FieldBlock",
@@ -92,18 +92,49 @@ class BlockAnalyzer:
 
 
 class BlockRenderer:
-    def __init__(self, analyzer: BlockAnalyzer) -> None:
+    def __init__(self, analyzer: BlockAnalyzer, fake_block_provider: FakeBlockProvider) -> None:
         self.analyzer = analyzer
+        self.block_rep = analyzer.block_representation.copy()
+        self.fake_block_provider = fake_block_provider
+
+    def _get_block_value(self, block):
+        return self.fake_block_provider(block).render()
+
+    def _walk_value_dict(self, stream_value: dict) -> dict:
+        internal_block = {}
+        for k, v in stream_value.items():
+            if isinstance(v, dict):
+                internal_block[k] = self._walk_value_dict(v)
+                continue
+            if isinstance(v, list):
+                # Probably a nested stream block
+                internal_block[k] = self._walk_stream_block(v)
+                continue
+            else:
+                internal_block[k] = self._get_block_value(v)
+        return internal_block
+
+    def _walk_stream_block(self, blocks) -> list[dict]:
+        sblock = []
+        for parent_block in blocks:
+            sblock_item = {'type': '', 'value': {}}
+            for name, value in parent_block.items():
+                if name == 'type':
+                    sblock_item['type'] = value
+                else:
+                    sblock_item['value'] = self._walk_value_dict(value)
+            sblock.append(sblock_item.copy())
+        return sblock
 
     def simple_fake(self):
-        for k, v in self.analyzer.block_representation.items():
-            if isinstance(v, list):
-                for x in v:
-                    print(f"{k}::{FAKE_BLOCK_MAP.get(x.__class__.__name__)()}")
-            if isinstance(v, dict):
-                for subk, subv in v.items():
-                    print(f"{subk}::{FAKE_BLOCK_MAP.get(subv.__class__.__name__)()}")
+        for name, block_def in self.block_rep.items():
+            if isinstance(block_def, list):
+                # This could be either ListBlock or StreamBlock
+                if isinstance(block_def[0], dict):
+                    # StreamBlock
+                    self.block_rep[name] = self._walk_stream_block(block_def)
+                else:
+                    # List Blocks can only have a single child block
+                    self.block_rep[name] = self._get_block_value(block_def[0])
             else:
-                import pdb;
-                pdb.set_trace()
-                print(f"{k}::{FAKE_BLOCK_MAP.get(v.__class__.__name__)()}")
+                self.block_rep[name] = self._get_block_value(block_def)
