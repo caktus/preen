@@ -11,7 +11,7 @@
 3. Configure the repository 
 
 ```shell
-    poetry config repositories.testpypi https://test.pypi.org/legacy/
+poetry config repositories.testpypi https://test.pypi.org/legacy/
 ```
 
 4. Publish the repository
