@@ -91,7 +91,7 @@ class BlockAnalyzer:
         return analyzer.block_representation
 
 
-class BlockRenderer:
+class BlockFaker:
     def __init__(self, analyzer: BlockAnalyzer, fake_block_provider: FakeBlockProvider) -> None:
         self.analyzer = analyzer
         self.block_rep = analyzer.block_representation.copy()
