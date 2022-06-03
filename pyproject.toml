@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "preen"
-version = "0.1.7"
+version = "0.1.8"
 description = "Preen is a library to help with the testing of wagtail pages and blocks."
 authors = ["Jeremy Gibson <jgibson@caktusgroup.com>", "Lorien Olive <lolive@caktusgroup.com>", "Ronard Luna <rluna@caktusgroup.com>", "Jason Judkins <jjudkins@caktusgroup.com>"]
 keywords = ["wagtail", "wagtail_test", "wagtail_pages", "wagtail_blocks"]
