@@ -8,9 +8,9 @@ Preen is a library that makes testing even complex, nested Wagtail blocks easier
 
 ## Why are we doing this?
 
-Testing Wagtail blocks gets increasingly hairy as they get more complex.  That's because of the way Wagtail encodes and hydrates blocks (and their related data) in complex JSON structures. You cannot simply test one piece of a complex block on its own. Wagtail will require that you provide the full context for each parent block, which can lead to some elaborate, time consuming test-writing and idiosyncratic workarounds. 
+Testing Wagtail blocks gets increasingly complex.  That's because of the way Wagtail encodes and hydrates blocks (and their related data) in complex JSON structures. One cannot simply test one piece of a complex block on its own. Wagtail requires full context for each parent block, which can lead to some elaborate, time-consuming test-writing, and idiosyncratic workarounds. 
 
-Given that so many of Caktus' projects use Wagtail, it doesn't make sense tackle this shared problem on a project-by-project basis. Our goal is to make a standalone library that's easy to install and use on any Wagtail project.  
+Given that many Caktus projects use Wagtail, it doesn't make sense tackling a shared problem on a project-by-project basis. Our goal is to make a standalone library that's easy to install and use on any Wagtail project.  
 
 
 ## What are we using to build it?
@@ -27,11 +27,11 @@ tbd
 
 ## Where does it live?
 
-pypi - tbd
+pypi
 
 ## How do I get involved?
 
-only do this if you're up for an adventure at this stage!
+Only do this if you're up for an adventure at this stage!
 
 ## Dev Setup
 In the virtual environment where you will be testing Preen modules, 
