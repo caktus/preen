@@ -38,40 +38,34 @@ class BlockAnalyzer:
         self.no_object = self.arguments.get('no_object', False)
         self.block = block
         self.block_representation = {}
-        self.list_blocks = {}
-        self.stream_blocks = {}
-        self.other_complex = {}
         self._build_representation()
 
     def _build_representation(self):
         if blocks := self._get_iter_blocks():
             for name, block in blocks.items():
                 if block.__class__.__name__ == 'ListBlock':
-                    self.block_representation[name] = [block.child_block]
-                    self.list_blocks[name] = block
+                    self.block_representation[name] = self.list_block_render(block)
                     continue
                 if block.__class__.__name__ == 'StreamBlock':
                     sub_blocks = []
                     for child_name, child_block in block.child_blocks.items():
                         sub_blocks.append(self.stream_block_render(child_name, child_block))
                     self.block_representation[name] = sub_blocks
-                    self.stream_blocks[name] = block
                     continue
                 elif block.__class__.__name__ not in analyzer_simple:
                     self.block_representation[name] = self.block_render(block)
-                    self.other_complex[name] = block
                 else:
                     self._terminal_block(name, block)
         else:
             # This shouldn't be reached, but it's here to catch problems.
-            self._terminal_block("", self.block)
+            self._terminal_block("<UNEXPECTED>", self.block)
 
     def _terminal_block(self, name, block):
         if not name:
             name = block.__class__.__name__
         self.block_representation[name] = block
         if self.no_object:
-            self.block_representation[name] = name
+            self.block_representation[name] = block.__class__.__name__
 
     def _get_iter_blocks(self):
         if hasattr(self.block, 'child_blocks'):
@@ -85,6 +79,11 @@ class BlockAnalyzer:
         stream_parent["type"] = block_name
         stream_parent["value"] = analyzer.block_representation
         return stream_parent
+
+    def list_block_render(self, block):
+        if self.no_object:
+            return block.__class__.__name__
+        return [block.child_block]
 
     def block_render(self, block):
         analyzer = BlockAnalyzer(block, **self.arguments)
