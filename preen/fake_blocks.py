@@ -1,3 +1,4 @@
+import random
 from random import randint
 from faker import Faker
 
@@ -32,6 +33,8 @@ class FakeBlockProvider:
 
     def __init__(self, block_def, **kwargs) -> None:
         self.block = block_def
+        import pdb;
+        pdb.set_trace()
         self.block_call = getattr(self, FakeBlockProvider.FAKE_BLOCK_MAP.get(self.block.__class__.__name__))
         self.exclude_fields = kwargs.get('exclude_fields', {})
         self.override_block = kwargs.get('override_block', {})
@@ -88,8 +91,13 @@ class FakeBlockProvider:
         return fake.pyfloat(positive=True, max_value=7000, right_digits=6)
 
     def fake_choice_block(self):
-        breakpoint()
-        return "EMPTY"
+        # 1 in kwargs
+        if choices := self.block.__dict__.get("_constructor_args")[1].get("choices", {}):
+            return random.choice([x for x, v in choices])
+        elif default := self.block.__dict__.get("_constructor_args")[1].get("default", ""):
+            return str(default)
+        else:
+            return "<NO_CHOICES>"
 
     def fake_multiple_choice_block(self):
         return "EMPTY"

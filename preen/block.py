@@ -40,13 +40,25 @@ class BlockAnalyzer:
         self.block_representation = {}
         self._build_representation()
 
+    @staticmethod
+    def _is_stream_block(block):
+        """
+        It is hard to discover is a block is a StreamBlock. If the StreamBlock is declared on the field. Then
+        the first 'if' will capture; however if the field uses a block that extends StreamBlock, the second if capture
+        is needed since the __name__ is not StreamBlock but the name of the block class.
+        """
+        if block.__class__.__name__ == 'StreamBlock':
+            return True
+        if block.__class__.__mro__[1].__module__ == "wagtail.core.blocks.stream_block":
+            return True
+
     def _build_representation(self):
         if blocks := self._get_iter_blocks():
             for name, block in blocks.items():
                 if block.__class__.__name__ == 'ListBlock':
                     self.block_representation[name] = self.list_block_render(block)
                     continue
-                if block.__class__.__name__ == 'StreamBlock':
+                if self._is_stream_block(block):
                     sub_blocks = []
                     for child_name, child_block in block.child_blocks.items():
                         sub_blocks.append(self.stream_block_render(child_name, child_block))
@@ -91,7 +103,7 @@ class BlockAnalyzer:
 
 
 class BlockFaker:
-    def __init__(self, analyzer: BlockAnalyzer, fake_block_provider: FakeBlockProvider) -> None:
+    def __init__(self, analyzer: BlockAnalyzer, fake_block_provider=FakeBlockProvider) -> None:
         self.analyzer = analyzer
         self.block_rep = analyzer.block_representation.copy()
         self.fake_block_provider = fake_block_provider
